@@ -1,22 +1,31 @@
-export default function Pageview({ params }) {
-  const viewer = useRef(null);
+"use client"
+import React, { useEffect, useRef } from "react";
+
+export default function App() {
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    import('@pdftron/webviewer').then(() => {
-      WebViewer(
-        {
-          path: '/webviewer/lib',
-          initialDoc: '/files/document.pdf',
-        },
-        viewer.current
-      ).then((instance) => {
-        const { docViewer } = instance;
+    const container = containerRef.current;
+    let PSPDFKit;
+
+    (async function () {
+      PSPDFKit = await import("pspdfkit");
+      
+      if (PSPDFKit) {
+        PSPDFKit.unload(container);
+      }
+      
+      await PSPDFKit.load({
+        container,
+        document: "../files/document.pdf",
+        baseUrl: `${window.location.protocol}//${window.location.host}/`,
       });
-    });
+    })();
+
+    return () => PSPDFKit && PSPDFKit.unload(container);
   }, []);
+
   return (
-    <div className="mt-20">
-     <div className='webviewer' ref={viewer} style={{ height: '100vh' }}></div>
-    </div>
+      <div ref={containerRef} style={{ height: "100vh" }} />
   );
 }
